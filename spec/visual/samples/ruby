@@ -2,6 +2,12 @@
 # ruby 1.9 examples
 #######
 
+class Random
+  RANDOM_VAR = 1
+  RANDOM_2 = 2
+  RANDOM_3 = 3
+end
+
 state :foo do
   rule %r(/) do
     token Operator
@@ -42,6 +48,19 @@ a /1 \r[egex]\//
 a/ b #comment
 x.a / 1 # comment
 Foo::a / 3 + 4
+
+########
+# The popular . :bow:
+########
+
+# It appears in Floats
+2.3
+
+# It appears in Range
+1..10
+
+# It can even appear thrice in a row!
+10...100
 
 ########
 # method calls
@@ -244,6 +263,11 @@ asfsadf/
 
 foo[:bar] / baz[:zot]
 
+=begin some comments go here
+a comment, that should not
+end
+here
+=end
 
 #from: http://coderay.rubychan.de/rays/show/383
 class Object

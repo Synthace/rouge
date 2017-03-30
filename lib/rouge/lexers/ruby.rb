@@ -108,12 +108,14 @@ module Rouge
       )
 
       keywords_pseudo = %w(
-        initialize new loop include extend raise attr_reader attr_writer
-        attr_accessor alias_method attr catch throw private module_function
+        loop include extend raise
+        alias_method attr catch throw private module_function
         public protected true false nil __FILE__ __LINE__
       )
 
       builtins_g = %w(
+        attr_reader attr_writer attr_accessor
+
         __id__ __send__ abort ancestors at_exit autoload binding callcc
         caller catch chomp chop class_eval class_variables clone
         const_defined\? const_get const_missing const_set constants
@@ -150,7 +152,7 @@ module Rouge
         rule /\n\s*/m, Text, :expr_start
         rule /#.*$/, Comment::Single
 
-        rule %r(=begin\b.*?end\b)m, Comment::Multiline
+        rule %r(=begin\b.*?\n=end\b)m, Comment::Multiline
       end
 
       state :inline_whitespace do
@@ -164,6 +166,7 @@ module Rouge
         rule /0_?[0-7]+(?:_[0-7]+)*/, Num::Oct
         rule /0x[0-9A-Fa-f]+(?:_[0-9A-Fa-f]+)*/, Num::Hex
         rule /0b[01]+(?:_[01]+)*/, Num::Bin
+        rule /\d+\.\d+(e[\+\-]?\d+)?/, Num::Float
         rule /[\d]+(?:_\d+)*/, Num::Integer
 
         # names
@@ -204,6 +207,10 @@ module Rouge
 
         mixin :has_heredocs
 
+        # `..` and `...` for ranges must have higher priority than `.`
+        # Otherwise, they will be parsed as :method_call
+        rule /\.{2,3}/, Operator, :expr_start
+
         rule /[A-Z][a-zA-Z0-9_]*/, Name::Constant, :method_call
         rule /(\.|::)(\s*)([a-z_]\w*[!?]?|[*%&^`~+-\/\[<>=])/ do
           groups Punctuation, Text, Name::Function
@@ -212,7 +219,7 @@ module Rouge
 
         rule /[a-zA-Z_]\w*[?!]/, Name, :expr_start
         rule /[a-zA-Z_]\w*/, Name, :method_call
-        rule /\*\*|<<?|>>?|>=|<=|<=>|=~|={3}|!~|&&?|\|\||\.{1,3}/,
+        rule /\*\*|<<?|>>?|>=|<=|<=>|=~|={3}|!~|&&?|\|\||\./,
           Operator, :expr_start
         rule /[-+\/*%=<>&!^|~]=?/, Operator, :expr_start
         rule(/[?]/) { token Punctuation; push :ternary; push :expr_start }
@@ -301,7 +308,7 @@ module Rouge
           goto :expr_start
         end
 
-        rule /[A-Z_]\w*/, Name::Class
+        rule /[A-Z_]\w*/, Name::Class, :pop!
 
         rule(//) { pop! }
       end
