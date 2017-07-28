@@ -169,6 +169,9 @@ module Rouge
         yield %[                            If not provided, rougify will default to]
         yield %[                            terminal256.]
         yield %[]
+        yield %[--theme|-t <theme>          specify the theme to use for highlighting]
+        yield %[                            the file. (only applies to some formatters)]
+        yield %[]
         yield %[--mimetype|-m <mimetype>    specify a mimetype for lexer guessing]
         yield %[]
         yield %[--lexer-opts|-L <opts>      specify lexer options in CGI format]
@@ -176,6 +179,9 @@ module Rouge
         yield %[]
         yield %[--formatter-opts|-F <opts>  specify formatter options in CGI format]
         yield %[                            (opt1=val1&opt2=val2)]
+        yield %[]
+        yield %[--require|-r <filename>     require a filename or library before]
+        yield %[                            highlighting]
       end
 
       def self.parse(argv)
@@ -186,11 +192,14 @@ module Rouge
           :input_file => '-',
           :lexer_opts => {},
           :formatter_opts => {},
+          :requires => [],
         }
 
         until argv.empty?
           arg = argv.shift
           case arg
+          when '-r', '--require'
+            opts[:requires] << argv.shift
           when '--input-file', '-i'
             opts[:input_file] = argv.shift
           when '--mimetype', '-m'
@@ -238,6 +247,12 @@ module Rouge
       attr_reader :input_file, :lexer_name, :mimetype, :formatter
 
       def initialize(opts={})
+        Rouge::Lexer.enable_debug!
+
+        opts[:requires].each do |r|
+          require r
+        end
+
         @input_file = opts[:input_file]
 
         if opts[:lexer]
@@ -349,6 +364,11 @@ module Rouge
             desc << " [aliases: #{lexer.aliases.join(',')}]"
           end
           puts "%s: %s" % [lexer.tag, desc]
+
+          lexer.option_docs.keys.sort.each do |option|
+            puts "  ?#{option}= #{lexer.option_docs[option]}"
+          end
+
           puts
         end
       end

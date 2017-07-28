@@ -4,7 +4,7 @@ module Rouge
   module Lexers
     class OCaml < RegexLexer
       title "OCaml"
-      desc 'Objective CAML (ocaml.org)'
+      desc 'Objective Caml (ocaml.org)'
       tag 'ocaml'
       filenames '*.ml', '*.mli', '*.mll', '*.mly'
       mimetypes 'text/x-ocaml'
@@ -14,8 +14,8 @@ module Rouge
           as assert begin class constraint do done downto else end
           exception external false for fun function functor if in include
           inherit initializer lazy let match method module mutable new
-          object of open private raise rec sig struct then to true try
-          type value val virtual when while with
+          nonrec object of open private raise rec sig struct then to true
+          try type val virtual when while with
         )
       end
 
@@ -27,15 +27,15 @@ module Rouge
         @primitives ||= Set.new %w(unit int float bool string char list array)
       end
 
-      operator = %r([\[\];,_!$%&*+./:<=>?@^|~#-]+)
-      id = /[a-z][\w']*/i
+      operator = %r([;,_!$%&*+./:<=>?@^|~#-]+)
+      id = /[a-z_][\w']*/i
       upper_id = /[A-Z][\w']*/
 
       state :root do
         rule /\s+/m, Text
         rule /false|true|[(][)]|\[\]/, Name::Builtin::Pseudo
         rule /#{upper_id}(?=\s*[.])/, Name::Namespace, :dotted
-        rule /`#{upper_id}/, Name::Tag
+        rule /`#{id}/, Name::Tag
         rule upper_id, Name::Class
         rule /[(][*](?![)])/, Comment, :comment
         rule id do |m|
@@ -93,6 +93,7 @@ module Rouge
         rule /#{upper_id}(?=\s*[.])/, Name::Namespace
         rule upper_id, Name::Class, :pop!
         rule id, Name, :pop!
+        rule /[({\[]/, Punctuation, :pop!
       end
     end
   end

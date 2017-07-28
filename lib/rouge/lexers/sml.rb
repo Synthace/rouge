@@ -41,7 +41,8 @@ module Rouge
         rule /[(\[{]/, Punctuation, :main
         rule /[)\]}]/, Punctuation, :pop!
 
-        rule /\b(let|if|local)\b(?!')/, Keyword::Reserved do
+        rule /\b(let|if|local)\b(?!')/ do
+          token Keyword::Reserved
           push; push
         end
 
@@ -190,7 +191,7 @@ module Rouge
       end
 
       state :breakout do
-        rule /(?=\w+\b(#{SML.keywords.to_a.join('|')})\b(?!'))/ do
+        rule /(?=\b(#{SML.keywords.to_a.join('|')})\b(?!'))/ do
           pop!
         end
       end
